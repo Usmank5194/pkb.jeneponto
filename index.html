@@ -28,7 +28,10 @@
     .starfield{background-image:radial-gradient(#F9F5EC 1px,transparent 1px),radial-gradient(#D9B871 1px,transparent 1px);background-size:50px 50px,80px 80px;background-position:0 0,25px 25px;opacity:.04}
     .reveal-up{opacity:0;transform:translateY(60px);transition:all 1.2s cubic-bezier(.16,1,.3,1)}
     .reveal-up.active{opacity:1;transform:translateY(0)}
+    .reveal-fade{opacity:0;transition:opacity 1.5s ease-in-out}
+    .reveal-fade.active{opacity:1}
     .hero-gradient{background:linear-gradient(to bottom,#F9F5EC 0%,#C6A878 50%,#D9B871 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .roadmap-connector{position:absolute;left:23px;top:48px;bottom:0;width:1px;background:linear-gradient(to bottom,#D9B871,rgba(217,184,113,.1))}
     .section-divider{height:1px;background:linear-gradient(to right,transparent,rgba(198,168,120,.3),transparent)}
     .card-glow{position:relative;overflow:hidden}
     .card-glow::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(217,184,113,.06) 0%,transparent 60%);pointer-events:none;opacity:0;transition:opacity .5s}
@@ -36,6 +39,8 @@
     .btn-sweep{position:relative;overflow:hidden}
     .btn-sweep::after{content:'';position:absolute;inset:0;background:rgba(198,168,120,.1);transform:translateX(-100%);transition:transform .5s ease}
     .btn-sweep:hover::after{transform:translateX(0)}
+    @keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(217,184,113,.4)}50%{box-shadow:0 0 0 8px rgba(217,184,113,0)}}
+    .pulse-dot{animation:pulse-gold 3s ease-in-out infinite}
     .img-reveal{filter:grayscale(100%);transition:filter 1s ease}
     .img-reveal:hover{filter:grayscale(0%)}
     .nav-blend{mix-blend-mode:difference}
@@ -45,6 +50,7 @@
     .modal-overlay.open{opacity:1;pointer-events:auto}
     .modal-content{transform:translateY(40px) scale(.97);transition:transform .5s cubic-bezier(.16,1,.3,1)}
     .modal-overlay.open .modal-content{transform:translateY(0) scale(1)}
+    
     .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;grid-auto-rows: 260px;}
     @media(min-width:768px){.gallery-grid{grid-template-columns:repeat(3,1fr)}.gallery-grid .g-wide{grid-column:span 2}.gallery-grid .g-tall{grid-row:span 2}}
     .gallery-item{position:relative;overflow:hidden;cursor:pointer;border:1px solid rgba(198,168,120,.08);transition:border-color .5s;background:#0a1520; width:100%; height:100%;}
@@ -53,6 +59,7 @@
     .gallery-item:hover img{filter:grayscale(0%);opacity:.8;transform:scale(1.05)}
     .gallery-item .g-caption{position:absolute;bottom:0;left:0;right:0;padding:1.2rem;background:linear-gradient(to top,rgba(13,27,42,.9),transparent);transform:translateY(100%);transition:transform .5s ease}
     .gallery-item:hover .g-caption{transform:translateY(0)}
+    
     .berita-card{border:1px solid rgba(198,168,120,.08);padding:2rem;transition:all .5s;cursor:pointer}
     .berita-card:hover{border-color:rgba(198,168,120,.25);background:rgba(198,168,120,.02)}
     .edu-card{border:1px solid rgba(198,168,120,.08);padding:2rem;transition:all .5s}
@@ -61,6 +68,7 @@
     .lightbox-img{max-height:80vh;max-width:90vw;object-fit:contain}
     .form-input{width:100%;background:transparent;border:1px solid rgba(198,168,120,.1);padding:1rem 1.25rem;font-size:.875rem;font-weight:300;color:#F9F5EC;transition:border-color .5s;outline:none}
     .form-input:focus{border-color:rgba(198,168,120,.4)}
+    .form-input::placeholder{color:rgba(249,245,236,.2)}
     select.form-input{background:#0D1B2A;appearance:none;cursor:pointer}
     textarea.form-input{resize:none}
     .empty-state{text-align:center;padding:5rem 2rem;border:1px dashed rgba(198,168,120,.12);border-radius:4px}
@@ -101,7 +109,26 @@
     </div>
   </div>
   
-  <!-- MODAL: TAMBAH KEGIATAN (CONTOH) -->
+  <!-- MODAL: BACA BERITA -->
+  <div id="beritaModal" class="modal-overlay" onclick="closeBeritaModal(event)">
+    <div class="modal-content bg-charcoal border border-sand/10 max-w-3xl w-full mx-6 max-h-[85vh] overflow-y-auto rounded">
+      <div class="sticky top-0 bg-charcoal/95 backdrop-blur-md border-b border-sand/10 px-8 py-5 flex items-center justify-between z-10">
+        <span id="beritaModalKategori" class="text-xs font-medium tracking-widest uppercase text-gold/70"></span>
+        <button onclick="closeBeritaModal()" class="text-ivory/60 hover:text-ivory transition-colors"><iconify-icon icon="lucide:x" width="22"></iconify-icon></button>
+      </div>
+      <div class="p-8">
+        <h2 id="beritaModalJudul" class="font-display text-2xl md:text-3xl tracking-tight text-ivory mb-4"></h2>
+        <div class="flex flex-wrap items-center gap-6 mb-8 text-xs font-light text-ivory/40">
+          <span id="beritaModalTanggal"></span>
+          <span id="beritaModalLokasi"></span>
+          <span>Usman Hasan</span>
+        </div>
+        <div id="beritaModalIsi" class="text-sm font-light leading-relaxed text-ivory/60 whitespace-pre-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH KEGIATAN -->
   <div id="tambahKegiatanModal" class="modal-overlay" onclick="closeTambahKegiatan(event)">
     <div class="modal-content bg-charcoal border border-sand/10 max-w-2xl w-full mx-6 max-h-[90vh] overflow-y-auto rounded" onclick="event.stopPropagation()">
       <div class="sticky top-0 bg-charcoal/95 backdrop-blur-md border-b border-sand/10 px-8 py-5 flex items-center justify-between z-10">
@@ -141,17 +168,82 @@
     </div>
   </div>
 
+  <!-- MODAL: BUAT LAPORAN -->
+  <div id="buatLaporanModal" class="modal-overlay" onclick="closeBuatLaporan(event)">
+    <div class="modal-content bg-charcoal border border-sand/10 max-w-2xl w-full mx-6 max-h-[90vh] overflow-y-auto rounded" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-charcoal/95 backdrop-blur-md border-b border-sand/10 px-8 py-5 flex items-center justify-between z-10">
+        <span class="text-xs font-medium tracking-widest uppercase text-sand/60">Buat Laporan Kegiatan</span>
+        <button onclick="closeBuatLaporan()" class="text-ivory/60 hover:text-ivory transition-colors"><iconify-icon icon="lucide:x" width="22"></iconify-icon></button>
+      </div>
+      <form id="buatLaporanForm" class="p-8 space-y-5">
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Judul Laporan *</label><input type="text" id="laporanJudul" class="form-input" required></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Tanggal *</label><input type="date" id="laporanTanggal" class="form-input" required></div>
+          <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Lokasi *</label><input type="text" id="laporanLokasi" class="form-input" required></div>
+        </div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Kategori *</label><select id="laporanKategori" class="form-input" required><option value="">Pilih</option><option>Konseling KB</option><option>Penurunan Stunting</option><option>GenRE</option><option>Lainnya</option></select></div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Isi Laporan *</label><textarea id="laporanIsi" class="form-input" rows="8" required></textarea></div>
+        <div class="flex items-center gap-4 pt-2">
+          <button type="submit" class="btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-3.5 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:send" width="15"></iconify-icon> Publikasikan</button>
+          <button type="button" onclick="closeBuatLaporan()" class="text-sm font-light text-ivory/40 hover:text-ivory/60 transition-colors">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH RENCANA -->
+  <div id="tambahRencanaModal" class="modal-overlay" onclick="closeTambahRencana(event)">
+    <div class="modal-content bg-charcoal border border-sand/10 max-w-2xl w-full mx-6 max-h-[90vh] overflow-y-auto rounded" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-charcoal/95 backdrop-blur-md border-b border-sand/10 px-8 py-5 flex items-center justify-between z-10">
+        <span class="text-xs font-medium tracking-widest uppercase text-sand/60">Tambah Rencana Kerja</span>
+        <button onclick="closeTambahRencana()" class="text-ivory/60 hover:text-ivory transition-colors"><iconify-icon icon="lucide:x" width="22"></iconify-icon></button>
+      </div>
+      <form id="tambahRencanaForm" class="p-8 space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Periode *</label><input type="text" id="rencanaPeriode" class="form-input" placeholder="Q1 2026" required></div>
+          <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Status</label><select id="rencanaStatus" class="form-input"><option>Sedang Berjalan</option><option>Rencana</option><option>Visi</option></select></div>
+        </div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Judul Rencana *</label><input type="text" id="rencanaJudul" class="form-input" required></div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Deskripsi *</label><textarea id="rencanaDeskripsi" class="form-input" rows="4" required></textarea></div>
+        <div class="flex items-center gap-4 pt-2">
+          <button type="submit" class="btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-3.5 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:plus" width="15"></iconify-icon> Tambah</button>
+          <button type="button" onclick="closeTambahRencana()" class="text-sm font-light text-ivory/40 hover:text-ivory/60 transition-colors">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH MODUL -->
+  <div id="tambahModulModal" class="modal-overlay" onclick="closeTambahModul(event)">
+    <div class="modal-content bg-charcoal border border-sand/10 max-w-2xl w-full mx-6 max-h-[90vh] overflow-y-auto rounded" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-charcoal/95 backdrop-blur-md border-b border-sand/10 px-8 py-5 flex items-center justify-between z-10">
+        <span class="text-xs font-medium tracking-widest uppercase text-sand/60">Tambah Modul Edukasi</span>
+        <button onclick="closeTambahModul()" class="text-ivory/60 hover:text-ivory transition-colors"><iconify-icon icon="lucide:x" width="22"></iconify-icon></button>
+      </div>
+      <form id="tambahModulForm" class="p-8 space-y-5">
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Judul Modul *</label><input type="text" id="modulJudul" class="form-input" required></div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Deskripsi *</label><textarea id="modulDeskripsi" class="form-input" rows="3" required></textarea></div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Kategori *</label><select id="modulKategori" class="form-input" required><option value="">Pilih</option><option>Pelayanan KB</option><option>Stunting & Gizi</option><option>Manajemen Data</option></select></div>
+        <div><label class="text-xs font-medium tracking-widest uppercase text-sand/40 block mb-2">Link File (Google Drive/PDF) *</label><input type="text" id="modulLink" class="form-input" placeholder="Paste link disini" required></div>
+        <div class="flex items-center gap-4 pt-2">
+          <button type="submit" class="btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-3.5 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:plus" width="15"></iconify-icon> Tambah</button>
+          <button type="button" onclick="closeTambahModul()" class="text-sm font-light text-ivory/40 hover:text-ivory/60 transition-colors">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== NAVIGATION ==================== -->
   <nav class="fixed top-0 left-0 right-0 z-50 nav-blend">
     <div class="max-w-7xl mx-auto flex items-center justify-between py-5 px-6 md:px-12">
       <a href="#hero" class="font-display text-ivory text-lg tracking-tight">Usman Hasan.</a>
       <div class="hidden lg:flex items-center gap-8">
         <a href="#portfolio" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kegiatan</a>
+        <a href="#gallery" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Galeri</a>
         <a href="#berita" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Berita</a>
         <a href="#roadmap" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Rencana</a>
         <a href="#edukasi" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Edukasi</a>
-        <a href="#gallery" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Galeri</a>
-         <a href="#about" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Tentang</a>
+        <a href="#about" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Tentang</a>
         <a href="#contact" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kontak</a>
         <button id="navAuthBtn" onclick="handleAuthNav()" class="text-xs font-light text-ivory/40 hover:text-sand transition-colors duration-500 flex items-center gap-1.5"><iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span id="navAuthText">Admin</span></button>
       </div>
@@ -188,7 +280,7 @@
         <div class="reveal-up shrink-0"><button onclick="requireLogin('tambahKegiatanModal')" class="admin-only btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-4 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:plus" width="16"></iconify-icon> <span class="admin-label">Tambah Kegiatan</span></button></div>
       </div>
       <div id="kegiatanContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
-      <div id="kegiatanEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:clipboard-list" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada kegiatan. Login untuk menambah data.</p></div>
+      <div id="kegiatanEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:clipboard-list" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada kegiatan.</p></div>
     </div>
   </section>
 
@@ -211,18 +303,52 @@
       <div id="galleryEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:image" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada foto.</p></div>
     </div>
   </section>
-  <!-- ==================== BERITA (CONTOH) ==================== -->
+
+  <div class="section-divider max-w-7xl mx-auto"></div>
+
+  <!-- ==================== BERITA ==================== -->
   <section id="berita" class="py-32 px-6 md:px-12">
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-8">
         <div class="reveal-up"><p class="text-xs font-medium tracking-widest uppercase text-sand/60 mb-4">03 — Laporan Kegiatan</p><h2 class="font-display text-4xl md:text-6xl font-normal tracking-tight text-ivory">Berita &<br><span class="text-ivory/40">Laporan Lapangan</span></h2></div>
+        <div class="reveal-up shrink-0"><button onclick="requireLogin('buatLaporanModal')" class="admin-only btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-4 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:plus" width="16"></iconify-icon> <span class="admin-label">Buat Laporan Baru</span></button></div>
       </div>
       <div id="beritaContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       <div id="beritaEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:file-text" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada laporan kegiatan.</p></div>
     </div>
   </section>
 
-  <!-- ==================== TENTANG (CONTOH) ==================== -->
+  <div class="section-divider max-w-7xl mx-auto"></div>
+
+  <!-- ==================== RENCANA KERJA ==================== -->
+  <section id="roadmap" class="py-32 px-6 md:px-12">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-8">
+        <div class="reveal-up"><p class="text-xs font-medium tracking-widest uppercase text-sand/60 mb-4">04 — Rencana Kerja</p><h2 class="font-display text-4xl md:text-6xl font-normal tracking-tight text-ivory">Rencana Kerja<br><span class="text-ivory/40">Kegiatan</span></h2></div>
+        <div class="reveal-up shrink-0"><button onclick="requireLogin('tambahRencanaModal')" class="admin-only btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-4 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:plus" width="16"></iconify-icon> <span class="admin-label">Tambah Rencana</span></button></div>
+      </div>
+      <div id="roadmapContainer" class="grid grid-cols-1 md:grid-cols-2 gap-16"></div>
+      <div id="roadmapEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:target" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada rencana kerja.</p></div>
+    </div>
+  </section>
+
+  <div class="section-divider max-w-7xl mx-auto"></div>
+
+  <!-- ==================== EDUKASI ==================== -->
+  <section id="edukasi" class="py-32 px-6 md:px-12">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-8">
+        <div class="reveal-up"><p class="text-xs font-medium tracking-widest uppercase text-sand/60 mb-4">05 — Edukasi Digital</p><h2 class="font-display text-4xl md:text-6xl font-normal tracking-tight text-ivory">Modul &<br><span class="text-ivory/40">Materi Berbagi</span></h2></div>
+        <div class="reveal-up shrink-0"><button onclick="requireLogin('tambahModulModal')" class="admin-only btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-4 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:upload" width="16"></iconify-icon> <span class="admin-label">Tambah Modul</span></button></div>
+      </div>
+      <div id="modulContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="modulEmpty" class="empty-state reveal-up"><iconify-icon icon="lucide:book-open" width="40" class="text-sand/20"></iconify-icon><p class="text-sm font-light text-ivory/30 mt-4">Belum ada modul yang diunggah.</p></div>
+    </div>
+  </section>
+
+  <div class="section-divider max-w-7xl mx-auto"></div>
+
+  <!-- ==================== TENTANG ==================== -->
   <section id="about" class="py-32 px-6 md:px-12">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-16 items-start">
@@ -230,6 +356,14 @@
           <div class="relative aspect-[3/4] overflow-hidden mb-8">
             <img src="https://z-cdn-media.chatglm.cn/files/2a6847e3-f183-47e0-a8b9-baa0a308683a.jpeg?auth_key=1875573514-ab3c8993160c422abce015de8688a5f6-0-17afa7196f4e012bb42f0e8707fca0a9" alt="Usman Hasan" class="w-full h-full object-cover img-reveal opacity-60">
             <div class="absolute inset-0 bg-night/30"></div>
+            <div class="absolute top-0 left-0 w-16 h-16 border-t border-l border-gold/30"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-gold/30"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="border-t border-sand/10 pt-4"><p class="font-display text-3xl text-gold">Wilbin</p><p class="text-xs font-light text-ivory/40 mt-1">Empoang Selatan</p></div>
+            <div class="border-t border-sand/10 pt-4"><p class="font-display text-3xl text-gold">8</p><p class="text-xs font-light text-ivory/40 mt-1">Lingkungan</p></div>
+            <div class="border-t border-sand/10 pt-4"><p class="font-display text-3xl text-gold">1.535</p><p class="text-xs font-light text-ivory/40 mt-1">Keluarga</p></div>
+            <div class="border-t border-sand/10 pt-4"><p class="font-display text-3xl text-gold">874</p><p class="text-xs font-light text-ivory/40 mt-1">PUS</p></div>
           </div>
         </div>
         <div class="md:col-span-7 md:pt-12">
@@ -239,12 +373,14 @@
             <p class="text-sm font-light text-sand/50 mb-10">Penyuluh KB — DPPKB Kabupaten Jeneponto</p>
           </div>
           <div class="space-y-6 reveal-up">
-            <p class="text-base font-light leading-relaxed text-ivory/60">Saya adalah seorang <span class="text-ivory">Penyuluh Keluarga Berencana</span> yang telah mengabdi selama 23 tahun di Kabupaten Jeneponto, Sulawesi Selatan.</p>
+            <p class="text-base font-light leading-relaxed text-ivory/60">Saya adalah seorang <span class="text-ivory">Penyuluh Keluarga Berencana</span> yang telah mengabdi selama 23 tahun di Kabupaten Jeneponto, Sulawesi Selatan. Selama ini, saya mengenal setiap lorong, setiap rumah, dan setiap keluarga di wilayah binaan saya.</p>
+            <p class="text-base font-light leading-relaxed text-ivory/60">Wilayah binaan saya saat ini terdiri dari <span class="text-ivory">8 Lingkungan</span> dengan 1.535 keluarga dan 5.076 jiwa. Terdapat 874 pasangan usia subur yang terus saya pendampingi. Di wilayah ini saya telah membangun <span class="text-sand">1 Kampung KB Berkualitas</span> dan <span class="text-sand">1 Rumah Data</span> sebagai pusat informasi kependudukan.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
+
   <div class="section-divider max-w-7xl mx-auto"></div>
 
   <!-- ==================== KONTAK ==================== -->
@@ -254,10 +390,12 @@
       <div class="max-w-3xl mx-auto text-center">
         <div class="reveal-up"><p class="text-xs font-medium tracking-widest uppercase text-sand/60 mb-4">07 — Mari Terhubung</p></div>
         <h2 class="font-display text-4xl md:text-6xl lg:text-7xl font-normal tracking-tight text-ivory reveal-up">Kolaborasi untuk<br><span class="hero-gradient">Empoang Selatan</span></h2>
+        <p class="mt-8 text-base md:text-lg font-light leading-relaxed text-ivory/50 max-w-xl mx-auto reveal-up">Saya terbuka untuk diskusi dengan rekan sejawat, instansi terkait, atau siapa pun yang memiliki perhatian terhadap kualitas keluarga di Jeneponto.</p>
         <div class="mt-16 pt-10 border-t border-sand/10 reveal-up">
           <div class="flex flex-wrap items-center justify-center gap-8">
             <a href="mailto:usmanksiga@gmail.com" class="flex items-center gap-2 text-sm font-light text-ivory/50 hover:text-sand transition-colors duration-500"><iconify-icon icon="lucide:mail" width="16" class="text-sand/40"></iconify-icon>usmanksiga@gmail.com</a>
             <a href="https://wa.me/6281333378883" target="_blank" class="flex items-center gap-2 text-sm font-light text-ivory/50 hover:text-sand transition-colors duration-500"><iconify-icon icon="lucide:message-circle" width="16" class="text-sand/40"></iconify-icon>081333378883</a>
+            <a href="https://instagram.com/usmank5194" target="_blank" class="flex items-center gap-2 text-sm font-light text-ivory/50 hover:text-sand transition-colors duration-500"><iconify-icon icon="lucide:instagram" width="16" class="text-sand/40"></iconify-icon>@usmank5194</a>
           </div>
         </div>
       </div>
@@ -310,7 +448,8 @@
     function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},4000);}
     function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
     function closeModalCond(e,id){if(e&&e.target!==e.currentTarget)return;document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
-    function closeLogin(e){closeModalCond(e,'loginModal');} function closeTambahKegiatan(e){closeModalCond(e,'tambahKegiatanModal');} function closeTambahFoto(e){closeModalCond(e,'tambahFotoModal');} function closeLightbox(e){closeModalCond(e,'lightboxModal');} function requireLogin(modalId){openModal(modalId);}
+    function closeLogin(e){closeModalCond(e,'loginModal');} function closeTambahKegiatan(e){closeModalCond(e,'tambahKegiatanModal');} function closeTambahFoto(e){closeModalCond(e,'tambahFotoModal');} function closeLightbox(e){closeModalCond(e,'lightboxModal');} function closeBuatLaporan(e){closeModalCond(e,'buatLaporanModal');} function closeBeritaModal(e){closeModalCond(e,'beritaModal');} function closeTambahRencana(e){closeModalCond(e,'tambahRencanaModal');} function closeTambahModul(e){closeModalCond(e,'tambahModulModal');}
+    function requireLogin(modalId){openModal(modalId);}
     function compressImage(file, callback) {
         var reader = new FileReader(); reader.readAsDataURL(file);
         reader.onload = function(event) {
@@ -366,13 +505,31 @@
     
     document.getElementById('tambahFotoForm').addEventListener('submit', function(e) { e.preventDefault(); var fileInput = document.getElementById('fotoFile'); var btn = this.querySelector('button[type="submit"]'); if(fileInput.files[0]){ btn.innerHTML='Mengunggah...'; btn.disabled=true; compressImage(fileInput.files[0], function(url){ var newData = { url:url, caption:document.getElementById('fotoKeterangan').value.trim() }; galleryRef.push(newData).then(function(){ e.target.reset(); closeModalCond(null,'tambahFotoModal'); showToast('Sukses!'); btn.innerHTML='Tambah Foto'; btn.disabled=false; }); }); } });
 
+    // ===== 6. LOGIC BERITA =====
+    var beritaRef = db.ref('berita');
+    beritaRef.on('value', function(snap) { var d=snap.val(); var list=[]; if(d){list=Object.keys(d).map(k=>{return{id:k,...d[k]}}).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));} renderBeritaUI(list); });
+    function renderBeritaUI(list){ var c=document.getElementById('beritaContainer'); var em=document.getElementById('beritaEmpty'); if(list.length===0){c.innerHTML='';em.style.display='';return;} em.style.display='none'; var h=''; for(var i=0;i<list.length;i++){var b=list[i];var exc=b.isi.length>140?b.isi.substring(0,140)+'...':b.isi; var tgl=new Date(b.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); h+='<div class="berita-card reveal-up" onclick="openBeritaRead(\''+b.id+'\')"><div class="flex items-center gap-3 mb-4"><span class="text-xs text-gold/60 uppercase">'+b.kategori+'</span><span class="text-xs text-ivory/20">·</span><span class="text-xs text-ivory/30">'+tgl+'</span></div><h3 class="font-display text-lg text-ivory mb-3">'+b.judul+'</h3><p class="text-sm text-ivory/40 mb-4">'+exc.replace(/\n/g,' ')+'</p><div class="flex justify-between"><span class="text-xs text-ivory/25"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon> '+b.lokasi+'</span></div><div class="text-right mt-2"><button onclick="event.stopPropagation();hapusBerita(\''+b.id+'\')" class="admin-del text-xs text-red-400/50">Hapus</button></div></div>'; } c.innerHTML=h; }
+    function openBeritaRead(id){ beritaRef.child(id).once('value', function(snap){ var b=snap.val(); if(!b)return; document.getElementById('beritaModalJudul').textContent=b.judul; document.getElementById('beritaModalKategori').textContent=b.kategori; document.getElementById('beritaModalTanggal').textContent=new Date(b.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); document.getElementById('beritaModalLokasi').textContent=b.lokasi; document.getElementById('beritaModalIsi').textContent=b.isi; openModal('beritaModal'); }); }
+    document.getElementById('buatLaporanForm').addEventListener('submit', function(e){ e.preventDefault(); var newData = { judul:document.getElementById('laporanJudul').value.trim(), tanggal:document.getElementById('laporanTanggal').value, lokasi:document.getElementById('laporanLokasi').value.trim(), kategori:document.getElementById('laporanKategori').value, isi:document.getElementById('laporanIsi').value.trim(), createdAt:new Date().toISOString() }; beritaRef.push(newData).then(function(){ e.target.reset(); closeModalCond(null,'buatLaporanModal'); showToast('Laporan terbit!'); }); });
+    function hapusBerita(id){ if(confirm('Yakin?')){ beritaRef.child(id).remove(); } }
+
+    // ===== 7. LOGIC RENCANA =====
+    var rencanaRef = db.ref('rencana');
+    rencanaRef.on('value', function(snap){ var d=snap.val(); var list=[]; if(d){list=Object.keys(d).map(k=>{return{id:k,...d[k]}});} renderRencanaUI(list); });
+    function renderRencanaUI(list){ var c=document.getElementById('roadmapContainer'); var em=document.getElementById('roadmapEmpty'); if(list.length===0){c.innerHTML='';em.style.display='';return;} em.style.display='none'; var left=''; var right=''; for(var i=0;i<list.length;i++){var r=list[i]; var sClass=r.status==='Sedang Berjalan'?'text-gold/70':(r.status==='Visi'?'text-ivory/20':'text-sand/40'); var dClass=r.status==='Sedang Berjalan'?'border-gold/60 pulse-dot':(r.status==='Visi'?'border-sand/10':'border-sand/30'); var dInner=r.status==='Sedang Berjalan'?'bg-gold':(r.status==='Visi'?'bg-sand/20':'bg-sand/40'); var item='<div class="reveal-up relative pl-16 mb-16"><div class="absolute left-4 top-1 w-6 h-6 border '+dClass+' rounded-full flex items-center justify-center"><div class="w-2 h-2 '+dInner+' rounded-full"></div></div><span class="text-xs uppercase '+sClass+' block mb-3">'+r.periode+' · '+r.status+'</span><h3 class="font-display text-xl text-ivory mb-3">'+r.judul+'</h3><p class="text-sm text-ivory/50">'+r.deskripsi+'</p><div class="text-right mt-4"><button onclick="hapusRencana(\''+r.id+'\')" class="admin-del text-xs text-ivory/15 hover:text-red-400/60">Hapus</button></div></div>'; if(i%2===0)left+=item; else right+=item; } c.innerHTML='<div class="space-y-0">'+left+'</div><div class="space-y-0">'+right+'</div>'; }
+    document.getElementById('tambahRencanaForm').addEventListener('submit', function(e){ e.preventDefault(); var newData = { periode:document.getElementById('rencanaPeriode').value.trim(), status:document.getElementById('rencanaStatus').value, judul:document.getElementById('rencanaJudul').value.trim(), deskripsi:document.getElementById('rencanaDeskripsi').value.trim() }; rencanaRef.push(newData).then(function(){ e.target.reset(); closeModalCond(null,'tambahRencanaModal'); showToast('Rencana ditambah!'); }); });
+    function hapusRencana(id){ if(confirm('Yakin?')){ rencanaRef.child(id).remove(); } }
+
+    // ===== 8. LOGIC MODUL =====
+    var modulRef = db.ref('modul');
+    modulRef.on('value', function(snap){ var d=snap.val(); var list=[]; if(d){list=Object.keys(d).map(k=>{return{id:k,...d[k]}});} renderModulUI(list); });
+    function renderModulUI(list){ var c=document.getElementById('modulContainer'); var em=document.getElementById('modulEmpty'); if(list.length===0){c.innerHTML='';em.style.display='';return;} em.style.display='none'; var h=''; for(var i=0;i<list.length;i++){var m=list[i]; h+='<div class="edu-card reveal-up"><div class="flex justify-between mb-5"><div class="w-12 h-12 border border-sand/15 flex items-center justify-center"><iconify-icon icon="lucide:file-text" width="20" class="text-sand/40"></iconify-icon></div><button onclick="event.stopPropagation();hapusModul(\''+m.id+'\')" class="admin-del text-ivory/15 hover:text-red-400/60 p-1"><iconify-icon icon="lucide:trash-2" width="14"></iconify-icon></button></div><span class="text-xs text-sand/60 block mb-2">'+m.kategori+'</span><h3 class="font-display text-lg text-ivory mb-3">'+m.judul+'</h3><p class="text-sm text-ivory/40 mb-6">'+m.deskripsi+'</p><a href="'+m.link+'" target="_blank" class="text-xs text-sand/60 hover:text-gold"><iconify-icon icon="lucide:download" width="13"></iconify-icon> Buka File</a></div>'; } c.innerHTML=h; }
+    document.getElementById('tambahModulForm').addEventListener('submit', function(e){ e.preventDefault(); var newData = { judul:document.getElementById('modulJudul').value.trim(), deskripsi:document.getElementById('modulDeskripsi').value.trim(), kategori:document.getElementById('modulKategori').value, link:document.getElementById('modulLink').value.trim() }; modulRef.push(newData).then(function(){ e.target.reset(); closeModalCond(null,'tambahModulModal'); showToast('Modul ditambah!'); }); });
+    function hapusModul(id){ if(confirm('Yakin?')){ modulRef.child(id).remove(); } }
+
     // Animasi Scroll
     var observer=new IntersectionObserver(function(entries){for(var i=0;i<entries.length;i++){if(entries[i].isIntersecting)entries[i].target.classList.add('active');}},{threshold:0.15});
     document.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});
-        // Logic Berita
-    var beritaRef = db.ref('berita');
-    beritaRef.on('value', function(snap){ var d=snap.val(); var list=[]; if(d){list=Object.keys(d).map(k=>{return{id:k,...d[k]}}).reverse();} renderBeritaUI(list); });
-    function renderBeritaUI(list){ var c=document.getElementById('beritaContainer'); var em=document.getElementById('beritaEmpty'); if(list.length===0){c.innerHTML='';em.style.display='';return;} em.style.display='none'; var h=''; for(var i=0;i<list.length;i++){var b=list[i]; h+='<div class="berita-card reveal-up"><h3 class="font-display text-lg text-ivory mb-3">'+b.judul+'</h3><p class="text-sm text-ivory/40">'+b.isi.substring(0,100)+'...</p></div>'; } c.innerHTML=h; }
   </script>
 </body>
 </html>
