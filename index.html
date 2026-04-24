@@ -55,7 +55,7 @@
     @media(min-width:768px){.gallery-grid{grid-template-columns:repeat(3,1fr)}.gallery-grid .g-wide{grid-column:span 2}.gallery-grid .g-tall{grid-row:span 2}}
     .gallery-item{position:relative;overflow:hidden;cursor:pointer;border:1px solid rgba(198,168,120,.08);transition:border-color .5s;background:#0a1520; width:100%; height:100%;}
     .gallery-item:hover{border-color:rgba(198,168,120,.25)}
-    .gallery-item img{width:100%;height:100%;object-fit:cover;filter:grayscale(100%);opacity:.5;transition:all 1s ease}
+    .gallery-item img{width:100%;height:100%;object-fit:cover;filter:grayscale(0%);opacity:.1;transition:all 1s ease}
     .gallery-item:hover img{filter:grayscale(0%);opacity:.8;transform:scale(1.05)}
     .gallery-item .g-caption{position:absolute;bottom:0;left:0;right:0;padding:1.2rem;background:linear-gradient(to top,rgba(13,27,42,.9),transparent);transform:translateY(100%);transition:transform .5s ease}
     .gallery-item:hover .g-caption{transform:translateY(0)}
@@ -233,10 +233,12 @@
     </div>
   </div>
 
-  <!-- ==================== NAVIGATION ==================== -->
-  <nav class="fixed top-0 left-0 right-0 z-50 nav-blend">
+   <!-- ==================== NAVIGATION ==================== -->
+  <nav class="fixed top-0 left-0 right-0 z-[10000] bg-night/80 backdrop-blur-md border-b border-sand/5">
     <div class="max-w-7xl mx-auto flex items-center justify-between py-5 px-6 md:px-12">
       <a href="#hero" class="font-display text-ivory text-lg tracking-tight">Usman Hasan.</a>
+      
+      <!-- MENU DESKTOP -->
       <div class="hidden lg:flex items-center gap-8">
         <a href="#portfolio" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kegiatan</a>
         <a href="#gallery" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Galeri</a>
@@ -246,6 +248,25 @@
         <a href="#about" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Tentang</a>
         <a href="#contact" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kontak</a>
         <button id="navAuthBtn" onclick="handleAuthNav()" class="text-xs font-light text-ivory/40 hover:text-sand transition-colors duration-500 flex items-center gap-1.5"><iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span id="navAuthText">Admin</span></button>
+      </div>
+
+      <!-- MENU HP (TOMBOL HAMBURGER) - INI YANG HILANG TADI -->
+      <div class="flex items-center gap-4 lg:hidden">
+        <button id="navAuthBtnMobile" onclick="handleAuthNav()" class="text-ivory/40 hover:text-sand transition-colors"><iconify-icon icon="lucide:lock" width="18"></iconify-icon></button>
+        <button id="menuBtn" class="text-ivory border border-sand/20 rounded px-2 py-1" aria-label="Menu"><iconify-icon icon="lucide:menu" width="24"></iconify-icon></button>
+      </div>
+    </div>
+    
+    <!-- ISI MENU HP (DROP DOWN) -->
+    <div id="mobileMenu" class="lg:hidden overflow-hidden max-h-0 transition-all duration-500 ease-in-out bg-night/95 backdrop-blur-md">
+      <div class="px-6 py-8 flex flex-col gap-5">
+        <a href="#portfolio" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Kegiatan</a>
+        <a href="#gallery" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Galeri</a>
+        <a href="#berita" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Berita</a>
+        <a href="#roadmap" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Rencana</a>
+        <a href="#edukasi" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Edukasi</a>
+        <a href="#about" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Tentang</a>
+        <a href="#contact" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Kontak</a>
       </div>
     </div>
   </nav>
