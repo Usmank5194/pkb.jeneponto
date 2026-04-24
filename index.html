@@ -9,8 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <!-- TAMBAHAN: SDK FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script>
-    tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['Inter','sans-serif']},colors:{night:'#0D1B2A',charcoal:'#111111',ivory:'#F9F5EC',gold:'#D9B871',sand:'#C6A878'}}}}
+tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['Inter','sans-serif']},colors:{night:'#0D1B2A',charcoal:'#111111',ivory:'#F9F5EC',gold:'#D9B871',sand:'#C6A878'}}}}
   </script>
   <style>
     :root{--color-night:#0D1B2A;--color-sand:#C6A878;--color-gold:#D9B871;--color-ivory:#F9F5EC;--color-charcoal:#111111}
@@ -518,62 +522,41 @@
 
   <!-- ==================== JAVASCRIPT ==================== -->
   <script>
-    // ===== AUTH SYSTEM =====
-    var ADMIN_USER='admin';
-    var ADMIN_PASS='empoang2025';
+    // ===== 1. KONFIGURASI FIREBASE =====
+    var firebaseConfig = {
+      apiKey: "AIzaSyAbospSVczcpdLugCeEff939MfNLJDFqBU",
+      authDomain: "penyulu-kb.firebaseapp.com",
+      databaseURL: "https://penyulu-kb-default-rtdb.firebaseio.com",
+      projectId: "penyulu-kb",
+      storageBucket: "penyulu-kb.appspot.com",
+      messagingSenderId: "807177577831",
+      appId: "1:807177577831:web:faad7944e6c9d070b03bc2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var db = firebase.database();
 
-    function isLoggedIn(){return sessionStorage.getItem('uh_logged_in')==='yes';}
-    function doLogin(u,p){
-      if(u===ADMIN_USER&&p===ADMIN_PASS){
-        sessionStorage.setItem('uh_logged_in','yes');
-        updateAuthUI();return true;
-      }
-      return false;
-    }
-    function doLogout(){sessionStorage.removeItem('uh_logged_in');updateAuthUI();showToast('Berhasil keluar.');}
-    function requireLogin(modalId){
-      if(isLoggedIn()){openModal(modalId);}
-      else{openModal('loginModal');}
-    }
-    function handleAuthNav(){
-      if(isLoggedIn()){doLogout();}
-      else{openModal('loginModal');}
-    }
-    function updateAuthUI(){
-      var logged=isLoggedIn();
-      var navBtn=document.getElementById('navAuthBtn');
-      var navBtnM=document.getElementById('navAuthBtnMobile');
-      var navText=document.getElementById('navAuthText');
-      if(logged){
-        navBtn.innerHTML='<iconify-icon icon="lucide:log-out" width="13"></iconify-icon> <span>Keluar</span> <span class="admin-badge ml-2">Online</span>';
-        navBtn.className='text-xs font-medium text-gold/70 hover:text-gold transition-colors duration-500 flex items-center gap-1.5';
+    // ===== 2. SISTEM LOGIN (FIREBASE) =====
+    function handleAuthNav(){ if(auth.currentUser){ auth.signOut(); } else { openModal('loginModal'); } }
+    auth.onAuthStateChanged(function(user) { updateAuthUI(user); });
+    function updateAuthUI(user){
+      var navBtn=document.getElementById('navAuthBtn'); var navBtnM=document.getElementById('navAuthBtnMobile');
+      if(user){
+        navBtn.innerHTML='<iconify-icon icon="lucide:log-out" width="13"></iconify-icon> <span>Keluar</span>';
+        if(navBtnM) navBtnM.innerHTML='<iconify-icon icon="lucide:log-out" width="18" class="text-gold/70"></iconify-icon>';
+        var adminBtns=document.querySelectorAll('.admin-only'); for(var i=0;i<adminBtns.length;i++){adminBtns[i].style.display='inline-flex';}
       }else{
         navBtn.innerHTML='<iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span>Admin</span>';
-        navBtn.className='text-xs font-light text-ivory/40 hover:text-sand transition-colors duration-500 flex items-center gap-1.5';
+        if(navBtnM) navBtnM.innerHTML='<iconify-icon icon="lucide:lock" width="18" class="text-ivory/40"></iconify-icon>';
+        var adminBtns=document.querySelectorAll('.admin-only'); for(var i=0;i<adminBtns.length;i++){adminBtns[i].style.display='none';}
       }
-      if(logged){navBtnM.innerHTML='<iconify-icon icon="lucide:log-out" width="18" class="text-gold/70"></iconify-icon>';}
-      else{navBtnM.innerHTML='<iconify-icon icon="lucide:lock" width="18" class="text-ivory/40"></iconify-icon>';}
-      var adminBtns=document.querySelectorAll('.admin-only');
-      for(var i=0;i<adminBtns.length;i++){adminBtns[i].style.display=logged?'inline-flex':'none';}
-      var delBtns=document.querySelectorAll('.admin-del');
-      for(var j=0;j<delBtns.length;j++){delBtns[j].style.display=logged?'':'none';}
     }
-
     document.getElementById('loginForm').addEventListener('submit',function(e){
-      e.preventDefault();
-      var u=document.getElementById('loginUser').value.trim();
-      var p=document.getElementById('loginPass').value;
-      if(doLogin(u,p)){
-        this.reset();closeModalCond(null,'loginModal');
-        document.getElementById('loginError').classList.add('hidden');
-        showToast('Selamat datang, Pak Usman!');
-      }else{document.getElementById('loginError').classList.remove('hidden');}
+      e.preventDefault(); var u=document.getElementById('loginUser').value.trim(); var p=document.getElementById('loginPass').value;
+      auth.signInWithEmailAndPassword(u, p).then(function(userCredential) {
+        closeModalCond(null,'loginModal'); showToast('Selamat datang!'); document.getElementById('loginError').classList.add('hidden');
+      }).catch(function(error) { document.getElementById('loginError').classList.remove('hidden'); });
     });
-
-    // ===== STORAGE =====
-    function getData(key,def){var d=localStorage.getItem('uh2_'+key);if(!d){localStorage.setItem('uh2_'+key,JSON.stringify(def));return def.slice();}return JSON.parse(d);}
-    function setData(key,val){localStorage.setItem('uh2_'+key,JSON.stringify(val));}
-
     // ===== TOAST =====
     function showToast(msg,dur){dur=dur||4000;var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},dur);}
 
