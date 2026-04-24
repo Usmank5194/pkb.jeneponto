@@ -233,12 +233,10 @@
     </div>
   </div>
 
-   <!-- ==================== NAVIGATION ==================== -->
-  <nav class="fixed top-0 left-0 right-0 z-[10000] bg-night/80 backdrop-blur-md border-b border-sand/5">
+    <!-- ==================== NAVIGATION ==================== -->
+  <nav class="fixed top-0 left-0 right-0 z-50 nav-blend">
     <div class="max-w-7xl mx-auto flex items-center justify-between py-5 px-6 md:px-12">
       <a href="#hero" class="font-display text-ivory text-lg tracking-tight">Usman Hasan.</a>
-      
-      <!-- MENU DESKTOP -->
       <div class="hidden lg:flex items-center gap-8">
         <a href="#portfolio" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kegiatan</a>
         <a href="#gallery" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Galeri</a>
@@ -249,15 +247,11 @@
         <a href="#contact" class="text-xs font-light text-ivory/60 hover:text-ivory transition-colors duration-500">Kontak</a>
         <button id="navAuthBtn" onclick="handleAuthNav()" class="text-xs font-light text-ivory/40 hover:text-sand transition-colors duration-500 flex items-center gap-1.5"><iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span id="navAuthText">Admin</span></button>
       </div>
-
-      <!-- MENU HP (TOMBOL HAMBURGER) - INI YANG HILANG TADI -->
       <div class="flex items-center gap-4 lg:hidden">
         <button id="navAuthBtnMobile" onclick="handleAuthNav()" class="text-ivory/40 hover:text-sand transition-colors"><iconify-icon icon="lucide:lock" width="18"></iconify-icon></button>
-        <button id="menuBtn" class="text-ivory border border-sand/20 rounded px-2 py-1" aria-label="Menu"><iconify-icon icon="lucide:menu" width="24"></iconify-icon></button>
+        <button id="menuBtn" class="text-ivory" aria-label="Menu"><iconify-icon icon="lucide:menu" width="24"></iconify-icon></button>
       </div>
     </div>
-    
-    <!-- ISI MENU HP (DROP DOWN) -->
     <div id="mobileMenu" class="lg:hidden overflow-hidden max-h-0 transition-all duration-500 ease-in-out bg-night/95 backdrop-blur-md">
       <div class="px-6 py-8 flex flex-col gap-5">
         <a href="#portfolio" class="text-sm font-light text-ivory/60 hover:text-ivory transition-colors duration-500 mobile-link">Kegiatan</a>
@@ -270,6 +264,7 @@
       </div>
     </div>
   </nav>
+
 
   <!-- ==================== HERO ==================== -->
   <section id="hero" class="relative min-h-screen flex flex-col justify-end px-6 md:px-12 pb-20 pt-32 overflow-hidden">
