@@ -9,12 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <!-- TAMBAHAN: SDK FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <!-- ===== FIREBASE SDK (compat) ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
   <script>
-tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['Inter','sans-serif']},colors:{night:'#0D1B2A',charcoal:'#111111',ivory:'#F9F5EC',gold:'#D9B871',sand:'#C6A878'}}}}
+    tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['Inter','sans-serif']},colors:{night:'#0D1B2A',charcoal:'#111111',ivory:'#F9F5EC',gold:'#D9B871',sand:'#C6A878'}}}}
   </script>
   <style>
     :root{--color-night:#0D1B2A;--color-sand:#C6A878;--color-gold:#D9B871;--color-ivory:#F9F5EC;--color-charcoal:#111111}
@@ -48,18 +49,16 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
     .modal-overlay.open{opacity:1;pointer-events:auto}
     .modal-content{transform:translateY(40px) scale(.97);transition:transform .5s cubic-bezier(.16,1,.3,1)}
     .modal-overlay.open .modal-content{transform:translateY(0) scale(1)}
-    
-    /* --- PERBAIKAN GALERI (RESPONSIF & ASPECT RATIO) --- */
-    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;grid-auto-rows: 260px; /* Memaksa tinggi baris grid sama */
-    }
+
+    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;grid-auto-rows:260px}
     @media(min-width:768px){.gallery-grid{grid-template-columns:repeat(3,1fr)}.gallery-grid .g-wide{grid-column:span 2}.gallery-grid .g-tall{grid-row:span 2}}
-    .gallery-item{position:relative;overflow:hidden;cursor:pointer;border:1px solid rgba(198,168,120,.08);transition:border-color .5s;background:#0a1520; width:100%; height:100%;}
+    .gallery-item{position:relative;overflow:hidden;cursor:pointer;border:1px solid rgba(198,168,120,.08);transition:border-color .5s;background:#0a1520;width:100%;height:100%}
     .gallery-item:hover{border-color:rgba(198,168,120,.25)}
     .gallery-item img{width:100%;height:100%;object-fit:cover;filter:grayscale(100%);opacity:.5;transition:all 1s ease}
     .gallery-item:hover img{filter:grayscale(0%);opacity:.8;transform:scale(1.05)}
     .gallery-item .g-caption{position:absolute;bottom:0;left:0;right:0;padding:1.2rem;background:linear-gradient(to top,rgba(13,27,42,.9),transparent);transform:translateY(100%);transition:transform .5s ease}
     .gallery-item:hover .g-caption{transform:translateY(0)}
-    
+
     .berita-card{border:1px solid rgba(198,168,120,.08);padding:2rem;transition:all .5s;cursor:pointer}
     .berita-card:hover{border-color:rgba(198,168,120,.25);background:rgba(198,168,120,.02)}
     .edu-card{border:1px solid rgba(198,168,120,.08);padding:2rem;transition:all .5s}
@@ -74,11 +73,14 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
     .empty-state{text-align:center;padding:5rem 2rem;border:1px dashed rgba(198,168,120,.12);border-radius:4px}
     .admin-only{}
     .admin-badge{font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(217,184,113,.15);color:#D9B871;letter-spacing:.1em;text-transform:uppercase}
+    .sync-indicator{position:fixed;top:1rem;right:1rem;z-index:9998;font-size:10px;padding:4px 10px;border-radius:3px;background:rgba(217,184,113,.1);color:#D9B871;opacity:0;transition:opacity .5s;pointer-events:none}
+    .sync-indicator.show{opacity:1}
   </style>
 </head>
 <body>
   <div class="noise-overlay"></div>
   <div id="toast" class="toast"></div>
+  <div id="syncIndicator" class="sync-indicator">Sinkronisasi...</div>
 
   <!-- LIGHTBOX -->
   <div id="lightboxModal" class="modal-overlay" onclick="closeLightbox(event)">
@@ -210,7 +212,7 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
           <button type="submit" class="btn-sweep inline-flex items-center gap-2 border border-sand/30 text-ivory text-sm font-medium tracking-wide px-8 py-3.5 hover:border-sand transition-colors duration-500"><iconify-icon icon="lucide:image-plus" width="15"></iconify-icon> Tambah Foto</button>
           <button type="button" onclick="closeTambahFoto()" class="text-sm font-light text-ivory/40 hover:text-ivory/60 transition-colors">Batal</button>
         </div>
-        <p class="text-xs font-light text-ivory/20">Sistem otomatis mengompres foto agar muat di penyimpanan browser.</p>
+        <p class="text-xs font-light text-ivory/20">Sistem otomatis mengompres foto agar muat di penyimpanan.</p>
       </form>
     </div>
   </div>
@@ -412,13 +414,12 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
 
   <div class="section-divider max-w-7xl mx-auto"></div>
 
-  <!-- ==================== TENTANG (UPDATED PHOTO) ==================== -->
+  <!-- ==================== TENTANG ==================== -->
   <section id="about" class="py-32 px-6 md:px-12">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-16 items-start">
         <div class="md:col-span-5 reveal-up">
           <div class="relative aspect-[3/4] overflow-hidden mb-8">
-            <!-- FOTO PROFILE DIGANTI DISINI -->
             <img src="https://z-cdn-media.chatglm.cn/files/2a6847e3-f183-47e0-a8b9-baa0a308683a.jpeg?auth_key=1875573514-ab3c8993160c422abce015de8688a5f6-0-17afa7196f4e012bb42f0e8707fca0a9" alt="Usman Hasan" class="w-full h-full object-cover img-reveal opacity-60">
             <div class="absolute inset-0 bg-night/30"></div>
             <div class="absolute top-0 left-0 w-16 h-16 border-t border-l border-gold/30"></div>
@@ -520,103 +521,200 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
     </div>
   </footer>
 
-  <!-- ==================== JAVASCRIPT ==================== -->
+  <!-- ==================== JAVASCRIPT (FIREBASE) ==================== -->
   <script>
-    // ===== 1. KONFIGURASI FIREBASE =====
+    // ===================================================================
+    // ===== FIREBASE INITIALIZATION =====================================
+    // ===================================================================
     var firebaseConfig = {
       apiKey: "AIzaSyAbospSVczcpdLugCeEff939MfNLJDFqBU",
       authDomain: "penyulu-kb.firebaseapp.com",
       databaseURL: "https://penyulu-kb-default-rtdb.firebaseio.com",
       projectId: "penyulu-kb",
-      storageBucket: "penyulu-kb.appspot.com",
+      storageBucket: "penyulu-kb.firebasestorage.app",
       messagingSenderId: "807177577831",
-      appId: "1:807177577831:web:faad7944e6c9d070b03bc2"
+      appId: "1:807177577831:web:098e91035143b081b03bc2",
+      measurementId: "G-35WQXKF9VL"
     };
+
     firebase.initializeApp(firebaseConfig);
-    var auth = firebase.auth();
     var db = firebase.database();
 
-    // ===== 2. SISTEM LOGIN (FIREBASE) =====
-    function handleAuthNav(){ if(auth.currentUser){ auth.signOut(); } else { openModal('loginModal'); } }
-    auth.onAuthStateChanged(function(user) { updateAuthUI(user); });
-    function updateAuthUI(user){
-      var navBtn=document.getElementById('navAuthBtn'); var navBtnM=document.getElementById('navAuthBtnMobile');
-      if(user){
-        navBtn.innerHTML='<iconify-icon icon="lucide:log-out" width="13"></iconify-icon> <span>Keluar</span>';
-        if(navBtnM) navBtnM.innerHTML='<iconify-icon icon="lucide:log-out" width="18" class="text-gold/70"></iconify-icon>';
-        var adminBtns=document.querySelectorAll('.admin-only'); for(var i=0;i<adminBtns.length;i++){adminBtns[i].style.display='inline-flex';}
-      }else{
-        navBtn.innerHTML='<iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span>Admin</span>';
-        if(navBtnM) navBtnM.innerHTML='<iconify-icon icon="lucide:lock" width="18" class="text-ivory/40"></iconify-icon>';
-        var adminBtns=document.querySelectorAll('.admin-only'); for(var i=0;i<adminBtns.length;i++){adminBtns[i].style.display='none';}
-      }
+    // ===================================================================
+    // ===== DATA LAYER: FIREBASE REALTIME DATABASE ======================
+    // ===================================================================
+    // Semua data sekarang tersimpan di Firebase, bukan localStorage.
+    // Setiap perangkat yang membuka website ini akan melihat data yang sama.
+
+    function showSync() {
+      var el = document.getElementById('syncIndicator');
+      el.classList.add('show');
+      setTimeout(function() { el.classList.remove('show'); }, 2000);
     }
-    document.getElementById('loginForm').addEventListener('submit',function(e){
-      e.preventDefault(); var u=document.getElementById('loginUser').value.trim(); var p=document.getElementById('loginPass').value;
-      auth.signInWithEmailAndPassword(u, p).then(function(userCredential) {
-        closeModalCond(null,'loginModal'); showToast('Selamat datang!'); document.getElementById('loginError').classList.add('hidden');
-      }).catch(function(error) { document.getElementById('loginError').classList.remove('hidden'); });
+
+    // Baca data dari Firebase (realtime listener)
+    function listenData(key, callback) {
+      db.ref(key).on('value', function(snapshot) {
+        var val = snapshot.val();
+        var data = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+        callback(data);
+      });
+    }
+
+    // Tulis data ke Firebase (simpan seluruh array)
+    function saveData(key, data) {
+      showSync();
+      return db.ref(key).set(data);
+    }
+
+    // ===================================================================
+    // ===== AUTH SYSTEM =================================================
+    // ===================================================================
+    var ADMIN_USER = 'admin';
+    var ADMIN_PASS = 'empoang2025';
+
+    function isLoggedIn() { return sessionStorage.getItem('uh_logged_in') === 'yes'; }
+    function doLogin(u, p) {
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        sessionStorage.setItem('uh_logged_in', 'yes');
+        updateAuthUI();
+        return true;
+      }
+      return false;
+    }
+    function doLogout() { sessionStorage.removeItem('uh_logged_in'); updateAuthUI(); showToast('Berhasil keluar.'); }
+    function requireLogin(modalId) {
+      if (isLoggedIn()) { openModal(modalId); }
+      else { openModal('loginModal'); }
+    }
+    function handleAuthNav() {
+      if (isLoggedIn()) { doLogout(); }
+      else { openModal('loginModal'); }
+    }
+    function updateAuthUI() {
+      var logged = isLoggedIn();
+      var navBtn = document.getElementById('navAuthBtn');
+      var navBtnM = document.getElementById('navAuthBtnMobile');
+      if (logged) {
+        navBtn.innerHTML = '<iconify-icon icon="lucide:log-out" width="13"></iconify-icon> <span>Keluar</span> <span class="admin-badge ml-2">Online</span>';
+        navBtn.className = 'text-xs font-medium text-gold/70 hover:text-gold transition-colors duration-500 flex items-center gap-1.5';
+      } else {
+        navBtn.innerHTML = '<iconify-icon icon="lucide:lock" width="13"></iconify-icon> <span>Admin</span>';
+        navBtn.className = 'text-xs font-light text-ivory/40 hover:text-sand transition-colors duration-500 flex items-center gap-1.5';
+      }
+      if (logged) { navBtnM.innerHTML = '<iconify-icon icon="lucide:log-out" width="18" class="text-gold/70"></iconify-icon>'; }
+      else { navBtnM.innerHTML = '<iconify-icon icon="lucide:lock" width="18" class="text-ivory/40"></iconify-icon>'; }
+      var adminBtns = document.querySelectorAll('.admin-only');
+      for (var i = 0; i < adminBtns.length; i++) { adminBtns[i].style.display = logged ? 'inline-flex' : 'none'; }
+      var delBtns = document.querySelectorAll('.admin-del');
+      for (var j = 0; j < delBtns.length; j++) { delBtns[j].style.display = logged ? '' : 'none'; }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var u = document.getElementById('loginUser').value.trim();
+      var p = document.getElementById('loginPass').value;
+      if (doLogin(u, p)) {
+        this.reset();
+        closeModalCond(null, 'loginModal');
+        document.getElementById('loginError').classList.add('hidden');
+        showToast('Selamat datang, Pak Usman!');
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
     });
-    // ===== TOAST =====
-    function showToast(msg,dur){dur=dur||4000;var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},dur);}
 
-    // ===== GLOW =====
-    function handleGlow(e,el){var r=el.getBoundingClientRect();el.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');el.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');}
+    // ===================================================================
+    // ===== TOAST, GLOW, MODAL HELPERS ==================================
+    // ===================================================================
+    function showToast(msg, dur) { dur = dur || 4000; var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function() { t.classList.remove('show'); }, dur); }
+    function handleGlow(e, el) { var r = el.getBoundingClientRect(); el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%'); el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%'); }
+    function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeModalCond(e, id) { if (e && e.target !== e.currentTarget) return; document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+    function closeBuatLaporan(e) { closeModalCond(e, 'buatLaporanModal'); }
+    function closeTambahKegiatan(e) { closeModalCond(e, 'tambahKegiatanModal'); }
+    function closeTambahFoto(e) { closeModalCond(e, 'tambahFotoModal'); }
+    function closeTambahRencana(e) { closeModalCond(e, 'tambahRencanaModal'); }
+    function closeTambahModul(e) { closeModalCond(e, 'tambahModulModal'); }
+    function closeLogin(e) { closeModalCond(e, 'loginModal'); }
 
-    // ===== MODAL =====
-    function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
-    function closeModalCond(e,id){if(e&&e.target!==e.currentTarget)return;document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
-    function closeBuatLaporan(e){closeModalCond(e,'buatLaporanModal');}
-    function closeTambahKegiatan(e){closeModalCond(e,'tambahKegiatanModal');}
-    function closeTambahFoto(e){closeModalCond(e,'tambahFotoModal');}
-    function closeTambahRencana(e){closeModalCond(e,'tambahRencanaModal');}
-    function closeTambahModul(e){closeModalCond(e,'tambahModulModal');}
-    function closeLogin(e){closeModalCond(e,'loginModal');}
-
-    // ===== HELPER: KOMPRESI GAMBAR =====
+    // ===================================================================
+    // ===== HELPER: KOMPRESI GAMBAR ====================================
+    // ===================================================================
     function compressImage(file, callback) {
-        var reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function(event) {
-            var img = new Image();
-            img.src = event.target.result;
-            img.onload = function() {
-                var canvas = document.createElement('canvas');
-                var ctx = canvas.getContext('2d');
-                var maxWidth = 800;
-                var scaleSize = maxWidth / img.width;
-                canvas.width = maxWidth;
-                canvas.height = img.height * scaleSize;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                callback(canvas.toDataURL('image/jpeg', 0.7));
-            }
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(event) {
+        var img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          var maxWidth = 800;
+          var scaleSize = maxWidth / img.width;
+          canvas.width = maxWidth;
+          canvas.height = img.height * scaleSize;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
         }
+      }
     }
 
-    // ===== RENDER KEGIATAN =====
-    function renderKegiatan(){
-      var list=getData('kegiatan',[]);var c=document.getElementById('kegiatanContainer');var em=document.getElementById('kegiatanEmpty');
-      if(list.length===0){c.innerHTML='';em.style.display='';return;}em.style.display='none';var h='';
-      for(var i=0;i<list.length;i++){var k=list[i];var fotoHtml='';
-        if(k.foto){fotoHtml='<div class="relative aspect-[16/9] overflow-hidden mb-8"><img src="'+k.foto+'" alt="" class="w-full h-full object-cover img-reveal opacity-60" onerror="this.style.display=\'none\'"><div class="absolute inset-0 bg-night/40"></div></div>';}
-        var metricsHtml='';var metrics=[];
-        if(k.m1l&&k.m1v)metrics.push({l:k.m1l,v:k.m1v});if(k.m2l&&k.m2v)metrics.push({l:k.m2l,v:k.m2v});if(k.m3l&&k.m3v)metrics.push({l:k.m3l,v:k.m3v});
-        if(metrics.length>0){metricsHtml='<div class="grid grid-cols-'+metrics.length+' gap-4 pt-6 border-t border-sand/10">';for(var j=0;j<metrics.length;j++){metricsHtml+='<div><p class="font-display text-2xl text-gold">'+metrics[j].v+'</p><p class="text-xs font-light text-ivory/40 mt-1">'+metrics[j].l+'</p></div>';}metricsHtml+='</div>';}
-        h+='<div class="reveal-up card-glow border border-sand/10 p-8 md:p-10 hover:border-sand/25 transition-all duration-700 group" onmousemove="handleGlow(event,this)">';
-        h+='<div class="flex items-start justify-between mb-6"><span class="text-xs font-medium tracking-widest uppercase text-sand/50">'+k.tahun+'</span><span class="text-xs font-medium tracking-widest uppercase text-gold/70">'+k.kategori+'</span></div>';
-        h+='<h3 class="font-display text-2xl md:text-3xl tracking-tight text-ivory mb-4 group-hover:text-gold transition-colors duration-500">'+k.judul+'</h3>';
-        h+='<p class="text-sm font-light leading-relaxed text-ivory/50 mb-8">'+k.deskripsi+'</p>'+fotoHtml+metricsHtml;
-        h+='<div class="mt-4 text-right"><button onclick="hapusKegiatan('+k.id+')" class="admin-del text-xs font-light text-ivory/15 hover:text-red-400/60 transition-colors">Hapus</button></div></div>';
+    // ===================================================================
+    // ===== RENDER KEGIATAN (Firebase) ==================================
+    // ===================================================================
+    function renderKegiatan(list) {
+      var c = document.getElementById('kegiatanContainer');
+      var em = document.getElementById('kegiatanEmpty');
+      if (!list || list.length === 0) { c.innerHTML = ''; em.style.display = ''; return; }
+      em.style.display = 'none';
+      var h = '';
+      for (var i = 0; i < list.length; i++) {
+        var k = list[i];
+        if (!k) continue;
+        var fotoHtml = '';
+        if (k.foto) {
+          fotoHtml = '<div class="relative aspect-[16/9] overflow-hidden mb-8"><img src="' + k.foto + '" alt="" class="w-full h-full object-cover img-reveal opacity-60" onerror="this.style.display=\'none\'"><div class="absolute inset-0 bg-night/40"></div></div>';
+        }
+        var metricsHtml = '';
+        var metrics = [];
+        if (k.m1l && k.m1v) metrics.push({ l: k.m1l, v: k.m1v });
+        if (k.m2l && k.m2v) metrics.push({ l: k.m2l, v: k.m2v });
+        if (k.m3l && k.m3v) metrics.push({ l: k.m3l, v: k.m3v });
+        if (metrics.length > 0) {
+          metricsHtml = '<div class="grid grid-cols-' + metrics.length + ' gap-4 pt-6 border-t border-sand/10">';
+          for (var j = 0; j < metrics.length; j++) {
+            metricsHtml += '<div><p class="font-display text-2xl text-gold">' + metrics[j].v + '</p><p class="text-xs font-light text-ivory/40 mt-1">' + metrics[j].l + '</p></div>';
+          }
+          metricsHtml += '</div>';
+        }
+        h += '<div class="reveal-up card-glow border border-sand/10 p-8 md:p-10 hover:border-sand/25 transition-all duration-700 group" onmousemove="handleGlow(event,this)">';
+        h += '<div class="flex items-start justify-between mb-6"><span class="text-xs font-medium tracking-widest uppercase text-sand/50">' + (k.tahun || '') + '</span><span class="text-xs font-medium tracking-widest uppercase text-gold/70">' + (k.kategori || '') + '</span></div>';
+        h += '<h3 class="font-display text-2xl md:text-3xl tracking-tight text-ivory mb-4 group-hover:text-gold transition-colors duration-500">' + k.judul + '</h3>';
+        h += '<p class="text-sm font-light leading-relaxed text-ivory/50 mb-8">' + (k.deskripsi || '') + '</p>' + fotoHtml + metricsHtml;
+        h += '<div class="mt-4 text-right"><button onclick="hapusKegiatan(' + k.id + ')" class="admin-del text-xs font-light text-ivory/15 hover:text-red-400/60 transition-colors">Hapus</button></div></div>';
       }
-      c.innerHTML=h;c.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});updateAuthUI();
+      c.innerHTML = h;
+      c.querySelectorAll('.reveal-up').forEach(function(el) { observer.observe(el); });
+      updateAuthUI();
     }
+
+    // Listener realtime dari Firebase
+    listenData('kegiatan', renderKegiatan);
 
     document.getElementById('tambahKegiatanForm').addEventListener('submit', function(e) {
       e.preventDefault();
       var fileInput = document.getElementById('kegFotoFile');
       var btn = this.querySelector('button[type="submit"]');
+      var self = this;
+
       var processSubmit = function(finalFotoUrl) {
-          var list = getData('kegiatan', []);
+        btn.innerHTML = '<iconify-icon icon="lucide:loader-2" width="15" class="animate-spin"></iconify-icon> Menyimpan...';
+        btn.disabled = true;
+
+        // Baca data saat ini dari Firebase, lalu push
+        db.ref('kegiatan').once('value', function(snapshot) {
+          var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
           list.push({
             id: Date.now(),
             judul: document.getElementById('kegJudul').value.trim(),
@@ -631,175 +729,394 @@ tailwind.config={theme:{extend:{fontFamily:{display:['Cinzel','serif'],body:['In
             m3l: document.getElementById('kegM3Label').value.trim(),
             m3v: document.getElementById('kegM3Angka').value.trim()
           });
-          setData('kegiatan', list);
-          renderKegiatan();
-          e.target.reset();
-          closeModalCond(null, 'tambahKegiatanModal');
-          showToast('Kegiatan berhasil ditambahkan!');
-          btn.innerHTML = '<iconify-icon icon="lucide:plus" width="15"></iconify-icon> Tambah';
-          btn.disabled = false;
+          saveData('kegiatan', list).then(function() {
+            self.reset();
+            closeModalCond(null, 'tambahKegiatanModal');
+            showToast('Kegiatan berhasil ditambahkan!');
+            btn.innerHTML = '<iconify-icon icon="lucide:plus" width="15"></iconify-icon> Tambah';
+            btn.disabled = false;
+          });
+        });
       };
+
       if (fileInput.files && fileInput.files[0]) {
-        var originalText = btn.innerHTML;
         btn.innerHTML = 'Mengunggah...';
         btn.disabled = true;
         compressImage(fileInput.files[0], function(base64Url) { processSubmit(base64Url); });
-      } else { processSubmit(""); }
+      } else {
+        processSubmit("");
+      }
     });
 
-    function hapusKegiatan(id){var list=getData('kegiatan',[]);list=list.filter(function(x){return x.id!==id;});setData('kegiatan',list);renderKegiatan();showToast('Kegiatan dihapus.');}
-
-    // ===== RENDER GALERI =====
-    var currentLB=0;var filteredGB=[];
-    function renderGallery(){
-      var list=getData('gallery',[]);var c=document.getElementById('galleryGrid');var em=document.getElementById('galleryEmpty');filteredGB=list.slice();
-      if(list.length===0){c.innerHTML='';em.style.display='';return;}em.style.display='none';var h='';
-      for(var i=0;i<list.length;i++){var g=list[i];var cls='gallery-item reveal-up';if(g.layout==='wide')cls+=' g-wide';if(g.layout==='tall')cls+=' g-tall';
-        h+='<div class="'+cls+'" data-cat="'+g.cat+'" onclick="openLightbox('+i+')"><img src="'+g.url+'" alt="'+g.caption+'" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=\\\'flex items-center justify-center h-full text-sand/20\\\'><iconify-icon icon=\\\'lucide:image-off\\\' width=\\\'32\\\'></iconify-icon></div>\'"><div class="g-caption"><p class="text-sm font-light text-ivory/80">'+g.caption+'</p></div></div>';}
-      c.innerHTML=h;c.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});
+    function hapusKegiatan(id) {
+      db.ref('kegiatan').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list = list.filter(function(x) { return x && x.id !== id; });
+        saveData('kegiatan', list).then(function() {
+          showToast('Kegiatan dihapus.');
+        });
+      });
     }
-    function openLightbox(i){currentLB=i;updateLB();openModal('lightboxModal');}
-    function closeLightbox(e){closeModalCond(e,'lightboxModal');}
-    function lightboxPrev(){currentLB=(currentLB-1+filteredGB.length)%filteredGB.length;updateLB();}
-    function lightboxNext(){currentLB=(currentLB+1)%filteredGB.length;updateLB();}
-    function updateLB(){var it=filteredGB[currentLB];if(!it)return;document.getElementById('lightboxImg').src=it.url;document.getElementById('lightboxCaption').textContent=it.caption;}
-    document.getElementById('galleryFilters').addEventListener('click',function(e){
-      var btn=e.target.closest('.tab-btn');if(!btn)return;this.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-      var f=btn.dataset.filter;filteredGB=f==='semua'?getData('gallery',[]).slice():getData('gallery',[]).filter(function(g){return g.cat===f;});
-      document.querySelectorAll('#galleryGrid .gallery-item').forEach(function(item){item.style.display=(f==='semua'||item.dataset.cat===f)?'':'none';});
+
+    // ===================================================================
+    // ===== RENDER GALERI (Firebase) ====================================
+    // ===================================================================
+    var currentLB = 0;
+    var allGalleryData = [];
+    var filteredGB = [];
+
+    function renderGallery(list) {
+      allGalleryData = list || [];
+      filteredGB = allGalleryData.slice();
+      var c = document.getElementById('galleryGrid');
+      var em = document.getElementById('galleryEmpty');
+      if (!list || list.length === 0) { c.innerHTML = ''; em.style.display = ''; return; }
+      em.style.display = 'none';
+      var h = '';
+      for (var i = 0; i < list.length; i++) {
+        var g = list[i];
+        if (!g) continue;
+        var cls = 'gallery-item reveal-up';
+        if (g.layout === 'wide') cls += ' g-wide';
+        if (g.layout === 'tall') cls += ' g-tall';
+        h += '<div class="' + cls + '" data-cat="' + (g.cat || '') + '" onclick="openLightbox(' + i + ')"><img src="' + g.url + '" alt="' + (g.caption || '') + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=\\\'flex items-center justify-center h-full text-sand/20\\\'><iconify-icon icon=\\\'lucide:image-off\\\' width=\\\'32\\\'></iconify-icon></div>\'"><div class="g-caption"><p class="text-sm font-light text-ivory/80">' + (g.caption || '') + '</p></div></div>';
+      }
+      c.innerHTML = h;
+      c.querySelectorAll('.reveal-up').forEach(function(el) { observer.observe(el); });
+    }
+
+    listenData('gallery', renderGallery);
+
+    function openLightbox(i) { currentLB = i; updateLB(); openModal('lightboxModal'); }
+    function closeLightbox(e) { closeModalCond(e, 'lightboxModal'); }
+    function lightboxPrev() { currentLB = (currentLB - 1 + filteredGB.length) % filteredGB.length; updateLB(); }
+    function lightboxNext() { currentLB = (currentLB + 1) % filteredGB.length; updateLB(); }
+    function updateLB() {
+      var it = filteredGB[currentLB];
+      if (!it) return;
+      document.getElementById('lightboxImg').src = it.url;
+      document.getElementById('lightboxCaption').textContent = it.caption || '';
+    }
+
+    document.getElementById('galleryFilters').addEventListener('click', function(e) {
+      var btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      this.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var f = btn.dataset.filter;
+      if (f === 'semua') {
+        filteredGB = allGalleryData.slice();
+      } else {
+        filteredGB = allGalleryData.filter(function(g) { return g && g.cat === f; });
+      }
+      document.querySelectorAll('#galleryGrid .gallery-item').forEach(function(item) {
+        item.style.display = (f === 'semua' || item.dataset.cat === f) ? '' : 'none';
+      });
     });
+
     document.getElementById('tambahFotoForm').addEventListener('submit', function(e) {
       e.preventDefault();
       var fileInput = document.getElementById('fotoFile');
       var btn = this.querySelector('button[type="submit"]');
+      var self = this;
       if (fileInput.files && fileInput.files[0]) {
-        var file = fileInput.files[0];
-        var originalText = btn.innerHTML;
         btn.innerHTML = 'Mengunggah...';
         btn.disabled = true;
-        compressImage(file, function(base64Url) {
-          var list = getData('gallery', []);
-          list.push({
-            id: Date.now(),
-            url: base64Url,
-            cat: document.getElementById('fotoKategori').value,
-            caption: document.getElementById('fotoKeterangan').value.trim(),
-            layout: document.getElementById('fotoLayout').value
+        compressImage(fileInput.files[0], function(base64Url) {
+          db.ref('gallery').once('value', function(snapshot) {
+            var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+            list.push({
+              id: Date.now(),
+              url: base64Url,
+              cat: document.getElementById('fotoKategori').value,
+              caption: document.getElementById('fotoKeterangan').value.trim(),
+              layout: document.getElementById('fotoLayout').value
+            });
+            saveData('gallery', list).then(function() {
+              self.reset();
+              closeModalCond(null, 'tambahFotoModal');
+              showToast('Foto berhasil ditambahkan!');
+              btn.innerHTML = '<iconify-icon icon="lucide:image-plus" width="15"></iconify-icon> Tambah Foto';
+              btn.disabled = false;
+            });
           });
-          setData('gallery', list);
-          renderGallery();
-          e.target.reset();
-          closeModalCond(null, 'tambahFotoModal');
-          showToast('Foto berhasil ditambahkan!');
-          btn.innerHTML = originalText;
-          btn.disabled = false;
         });
-      } else { showToast('Silakan pilih foto terlebih dahulu.'); }
+      } else {
+        showToast('Silakan pilih foto terlebih dahulu.');
+      }
     });
 
-    // ===== RENDER BERITA =====
-    function renderBerita(){
-      var list=getData('berita',[]).sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});var c=document.getElementById('beritaContainer');var em=document.getElementById('beritaEmpty');
-      if(list.length===0){c.innerHTML='';em.style.display='';return;}em.style.display='none';var h='';
-      for(var i=0;i<list.length;i++){var b=list[i];var exc=b.isi.length>140?b.isi.substring(0,140)+'...':b.isi;var tgl=new Date(b.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-        h+='<div class="berita-card reveal-up" onclick="openBeritaRead('+b.id+')"><div class="flex items-center gap-3 mb-4"><span class="text-xs font-medium tracking-widest uppercase text-gold/60">'+b.kategori+'</span><span class="text-xs font-light text-ivory/20">·</span><span class="text-xs font-light text-ivory/30">'+tgl+'</span></div><h3 class="font-display text-lg md:text-xl tracking-tight text-ivory mb-3 leading-snug">'+b.judul+'</h3><p class="text-sm font-light leading-relaxed text-ivory/40 mb-4">'+exc.replace(/\n/g,' ')+'</p><div class="flex items-center justify-between"><span class="text-xs font-light text-ivory/25 flex items-center gap-1"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>'+b.lokasi+'</span><span class="text-xs font-light text-sand/50">Baca →</span></div></div>';}
-      c.innerHTML=h;c.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});
+    // ===================================================================
+    // ===== RENDER BERITA (Firebase) ====================================
+    // ===================================================================
+    function renderBerita(list) {
+      if (list) { list.sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); }); }
+      var c = document.getElementById('beritaContainer');
+      var em = document.getElementById('beritaEmpty');
+      if (!list || list.length === 0) { c.innerHTML = ''; em.style.display = ''; return; }
+      em.style.display = 'none';
+      var h = '';
+      for (var i = 0; i < list.length; i++) {
+        var b = list[i];
+        if (!b) continue;
+        var exc = b.isi ? (b.isi.length > 140 ? b.isi.substring(0, 140) + '...' : b.isi) : '';
+        var tgl = b.tanggal ? new Date(b.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        h += '<div class="berita-card reveal-up" onclick="openBeritaRead(' + b.id + ')"><div class="flex items-center gap-3 mb-4"><span class="text-xs font-medium tracking-widest uppercase text-gold/60">' + (b.kategori || '') + '</span><span class="text-xs font-light text-ivory/20">·</span><span class="text-xs font-light text-ivory/30">' + tgl + '</span></div><h3 class="font-display text-lg md:text-xl tracking-tight text-ivory mb-3 leading-snug">' + b.judul + '</h3><p class="text-sm font-light leading-relaxed text-ivory/40 mb-4">' + exc.replace(/\n/g, ' ') + '</p><div class="flex items-center justify-between"><span class="text-xs font-light text-ivory/25 flex items-center gap-1"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>' + (b.lokasi || '') + '</span><span class="text-xs font-light text-sand/50">Baca →</span></div></div>';
+      }
+      c.innerHTML = h;
+      c.querySelectorAll('.reveal-up').forEach(function(el) { observer.observe(el); });
     }
-    function openBeritaRead(id){var list=getData('berita',[]);var b=null;for(var i=0;i<list.length;i++){if(list[i].id===id){b=list[i];break;}}if(!b)return;
-      document.getElementById('beritaModalJudul').textContent=b.judul;document.getElementById('beritaModalKategori').textContent=b.kategori;
-      document.getElementById('beritaModalTanggal').textContent=new Date(b.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-      document.getElementById('beritaModalLokasi').textContent=b.lokasi;document.getElementById('beritaModalIsi').textContent=b.isi;openModal('beritaModal');}
-    function closeBeritaModal(e){closeModalCond(e,'beritaModal');}
-    document.getElementById('buatLaporanForm').addEventListener('submit',function(e){
-      e.preventDefault();var list=getData('berita',[]);
-      list.push({id:Date.now(),judul:document.getElementById('laporanJudul').value.trim(),tanggal:document.getElementById('laporanTanggal').value,lokasi:document.getElementById('laporanLokasi').value.trim(),kategori:document.getElementById('laporanKategori').value,isi:document.getElementById('laporanIsi').value.trim(),createdAt:new Date().toISOString()});
-      setData('berita',list);renderBerita();this.reset();closeModalCond(null,'buatLaporanModal');showToast('Laporan berhasil dipublikasikan!');
-    });
 
-    // ===== RENDER RENCANA =====
-    function renderRencana(){
-      var list=getData('rencana',[]);var c=document.getElementById('roadmapContainer');var em=document.getElementById('roadmapEmpty');
-      if(list.length===0){c.innerHTML='';em.style.display='';return;}em.style.display='none';var leftCol='';var rightCol='';
-      for(var i=0;i<list.length;i++){var r=list[i];
-        var statusClass=r.status==='Sedang Berjalan'?'text-gold/70':(r.status==='Visi'?'text-ivory/20':'text-sand/40');
-        var dotClass=r.status==='Sedang Berjalan'?'border-gold/60 pulse-dot':(r.status==='Visi'?'border-sand/10':'border-sand/30');
-        var dotInner=r.status==='Sedang Berjalan'?'bg-gold':(r.status==='Visi'?'bg-sand/20':'bg-sand/40');
-        var tagsHtml='';var tags=[];if(r.tag1)tags.push(r.tag1);if(r.tag2)tags.push(r.tag2);if(r.tag3)tags.push(r.tag3);
-        if(tags.length>0){tagsHtml='<div class="flex flex-wrap gap-3 mt-4">';for(var j=0;j<tags.length;j++){tagsHtml+='<span class="text-xs font-light text-sand/60 border border-sand/10 px-3 py-1">'+tags[j]+'</span>';}tagsHtml+='</div>';}
-        var item='<div class="reveal-up relative pl-16 mb-16">';
-        if(i<list.length-1)item='<div class="reveal-up relative pl-16 mb-16"><div class="roadmap-connector"></div>';
-        item+='<div class="absolute left-4 top-1 w-6 h-6 border '+dotClass+' rounded-full flex items-center justify-center"><div class="w-2 h-2 '+dotInner+' rounded-full"></div></div>';
-        item+='<span class="text-xs font-medium tracking-widest uppercase '+statusClass+' block mb-3">'+r.periode+' · '+r.status+'</span>';
-        item+='<h3 class="font-display text-xl md:text-2xl tracking-tight text-ivory mb-3">'+r.judul+'</h3>';
-        item+='<p class="text-sm font-light leading-relaxed text-ivory/50">'+r.deskripsi+'</p>'+tagsHtml;
-        item+='<div class="mt-4 text-right"><button onclick="hapusRencana('+r.id+')" class="admin-del text-xs font-light text-ivory/15 hover:text-red-400/60 transition-colors">Hapus</button></div></div>';
-        if(i%2===0)leftCol+=item;else rightCol+=item;}
-      c.innerHTML='<div class="space-y-0">'+leftCol+'</div><div class="space-y-0">'+rightCol+'</div>';
-      c.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});updateAuthUI();
+    listenData('berita', renderBerita);
+
+    function openBeritaRead(id) {
+      db.ref('berita').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        var b = null;
+        for (var i = 0; i < list.length; i++) { if (list[i] && list[i].id === id) { b = list[i]; break; } }
+        if (!b) return;
+        document.getElementById('beritaModalJudul').textContent = b.judul;
+        document.getElementById('beritaModalKategori').textContent = b.kategori || '';
+        document.getElementById('beritaModalTanggal').textContent = b.tanggal ? new Date(b.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        document.getElementById('beritaModalLokasi').textContent = b.lokasi || '';
+        document.getElementById('beritaModalIsi').textContent = b.isi || '';
+        openModal('beritaModal');
+      });
     }
-    document.getElementById('tambahRencanaForm').addEventListener('submit',function(e){
-      e.preventDefault();var list=getData('rencana',[]);
-      list.push({id:Date.now(),periode:document.getElementById('rencanaPeriode').value.trim(),status:document.getElementById('rencanaStatus').value,judul:document.getElementById('rencanaJudul').value.trim(),deskripsi:document.getElementById('rencanaDeskripsi').value.trim(),tag1:document.getElementById('rencanaTag1').value.trim(),tag2:document.getElementById('rencanaTag2').value.trim(),tag3:document.getElementById('rencanaTag3').value.trim()});
-      setData('rencana',list);renderRencana();this.reset();closeModalCond(null,'tambahRencanaModal');showToast('Rencana kerja berhasil ditambahkan!');
-    });
-    function hapusRencana(id){var list=getData('rencana',[]);list=list.filter(function(x){return x.id!==id;});setData('rencana',list);renderRencana();showToast('Rencana dihapus.');}
+    function closeBeritaModal(e) { closeModalCond(e, 'beritaModal'); }
 
-    // ===== RENDER MODUL =====
-    function renderModul(){
-      var list=getData('modul',[]);var c=document.getElementById('modulContainer');var em=document.getElementById('modulEmpty');
-      if(list.length===0){c.innerHTML='';em.style.display='';return;}em.style.display='none';
-      var colors={'KB & Kontrasepsi':'text-blue-400/60','Stunting & Gizi':'text-green-400/60','Kesehatan Reproduksi':'text-pink-400/60','GenRE':'text-purple-400/60','Kampung KB':'text-amber-400/60','Mekanisme operasinal':'text-teal-400/60','Manajemen Data':'text-cyan-400/60'};
-      var h='';for(var i=0;i<list.length;i++){var m=list[i];var cc=colors[m.kategori]||'text-sand/60';
-        h+='<div class="edu-card reveal-up"><div class="flex items-start justify-between mb-5"><div class="w-12 h-12 border border-sand/15 flex items-center justify-center shrink-0"><iconify-icon icon="lucide:file-text" width="20" class="text-sand/40"></iconify-icon></div>';
-        h+='<button onclick="event.stopPropagation();hapusModul('+m.id+')" class="admin-del text-ivory/15 hover:text-red-400/60 transition-colors p-1"><iconify-icon icon="lucide:trash-2" width="14"></iconify-icon></button></div>';
-        h+='<span class="text-xs font-medium '+cc+' block mb-2">'+m.kategori+'</span><h3 class="font-display text-lg tracking-tight text-ivory mb-3">'+m.judul+'</h3>';
-        h+='<p class="text-sm font-light leading-relaxed text-ivory/40 mb-6">'+m.deskripsi+'</p>';
-        h+='<div class="flex items-center justify-between pt-4 border-t border-sand/8"><span class="text-xs font-light text-ivory/25">'+m.fileName+' · '+(m.fileSize||'PDF')+'</span>';
-        h+='<button onclick="event.stopPropagation();showToast(\'File akan diunduh.\')" class="text-xs font-medium text-sand/60 hover:text-gold transition-colors flex items-center gap-1"><iconify-icon icon="lucide:download" width="13"></iconify-icon> Unduh</button></div></div>';}
-      c.innerHTML=h;c.querySelectorAll('.reveal-up').forEach(function(el){observer.observe(el);});updateAuthUI();
+    document.getElementById('buatLaporanForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var self = this;
+      db.ref('berita').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list.push({
+          id: Date.now(),
+          judul: document.getElementById('laporanJudul').value.trim(),
+          tanggal: document.getElementById('laporanTanggal').value,
+          lokasi: document.getElementById('laporanLokasi').value.trim(),
+          kategori: document.getElementById('laporanKategori').value,
+          isi: document.getElementById('laporanIsi').value.trim(),
+          createdAt: new Date().toISOString()
+        });
+        saveData('berita', list).then(function() {
+          self.reset();
+          closeModalCond(null, 'buatLaporanModal');
+          showToast('Laporan berhasil dipublikasikan!');
+        });
+      });
+    });
+
+    // ===================================================================
+    // ===== RENDER RENCANA (Firebase) ===================================
+    // ===================================================================
+    function renderRencana(list) {
+      var c = document.getElementById('roadmapContainer');
+      var em = document.getElementById('roadmapEmpty');
+      if (!list || list.length === 0) { c.innerHTML = ''; em.style.display = ''; return; }
+      em.style.display = 'none';
+      var leftCol = '';
+      var rightCol = '';
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i];
+        if (!r) continue;
+        var statusClass = r.status === 'Sedang Berjalan' ? 'text-gold/70' : (r.status === 'Visi' ? 'text-ivory/20' : 'text-sand/40');
+        var dotClass = r.status === 'Sedang Berjalan' ? 'border-gold/60 pulse-dot' : (r.status === 'Visi' ? 'border-sand/10' : 'border-sand/30');
+        var dotInner = r.status === 'Sedang Berjalan' ? 'bg-gold' : (r.status === 'Visi' ? 'bg-sand/20' : 'bg-sand/40');
+        var tagsHtml = '';
+        var tags = [];
+        if (r.tag1) tags.push(r.tag1);
+        if (r.tag2) tags.push(r.tag2);
+        if (r.tag3) tags.push(r.tag3);
+        if (tags.length > 0) {
+          tagsHtml = '<div class="flex flex-wrap gap-3 mt-4">';
+          for (var j = 0; j < tags.length; j++) {
+            tagsHtml += '<span class="text-xs font-light text-sand/60 border border-sand/10 px-3 py-1">' + tags[j] + '</span>';
+          }
+          tagsHtml += '</div>';
+        }
+        var item = '<div class="reveal-up relative pl-16 mb-16">';
+        if (i < list.length - 1) item = '<div class="reveal-up relative pl-16 mb-16"><div class="roadmap-connector"></div>';
+        item += '<div class="absolute left-4 top-1 w-6 h-6 border ' + dotClass + ' rounded-full flex items-center justify-center"><div class="w-2 h-2 ' + dotInner + ' rounded-full"></div></div>';
+        item += '<span class="text-xs font-medium tracking-widest uppercase ' + statusClass + ' block mb-3">' + (r.periode || '') + ' · ' + (r.status || '') + '</span>';
+        item += '<h3 class="font-display text-xl md:text-2xl tracking-tight text-ivory mb-3">' + r.judul + '</h3>';
+        item += '<p class="text-sm font-light leading-relaxed text-ivory/50">' + (r.deskripsi || '') + '</p>' + tagsHtml;
+        item += '<div class="mt-4 text-right"><button onclick="hapusRencana(' + r.id + ')" class="admin-del text-xs font-light text-ivory/15 hover:text-red-400/60 transition-colors">Hapus</button></div></div>';
+        if (i % 2 === 0) leftCol += item; else rightCol += item;
+      }
+      c.innerHTML = '<div class="space-y-0">' + leftCol + '</div><div class="space-y-0">' + rightCol + '</div>';
+      c.querySelectorAll('.reveal-up').forEach(function(el) { observer.observe(el); });
+      updateAuthUI();
     }
-    document.getElementById('modulFile').addEventListener('change',function(){var f=this.files[0];document.getElementById('modulFileName').textContent=f?f.name:'';});
-    document.getElementById('tambahModulForm').addEventListener('submit',function(e){
-      e.preventDefault();var fi=document.getElementById('modulFile');if(!fi.files[0]){showToast('Mohon pilih file PDF.');return;}
-      var list=getData('modul',[]);list.push({id:Date.now(),judul:document.getElementById('modulJudul').value.trim(),deskripsi:document.getElementById('modulDeskripsi').value.trim(),kategori:document.getElementById('modulKategori').value,fileName:fi.files[0].name,fileSize:(fi.files[0].size/1024/1024).toFixed(1)+' MB'});
-      setData('modul',list);renderModul();this.reset();document.getElementById('modulFileName').textContent='';closeModalCond(null,'tambahModulModal');showToast('Modul berhasil ditambahkan!');
+
+    listenData('rencana', renderRencana);
+
+    document.getElementById('tambahRencanaForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var self = this;
+      db.ref('rencana').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list.push({
+          id: Date.now(),
+          periode: document.getElementById('rencanaPeriode').value.trim(),
+          status: document.getElementById('rencanaStatus').value,
+          judul: document.getElementById('rencanaJudul').value.trim(),
+          deskripsi: document.getElementById('rencanaDeskripsi').value.trim(),
+          tag1: document.getElementById('rencanaTag1').value.trim(),
+          tag2: document.getElementById('rencanaTag2').value.trim(),
+          tag3: document.getElementById('rencanaTag3').value.trim()
+        });
+        saveData('rencana', list).then(function() {
+          self.reset();
+          closeModalCond(null, 'tambahRencanaModal');
+          showToast('Rencana kerja berhasil ditambahkan!');
+        });
+      });
     });
-    function hapusModul(id){var list=getData('modul',[]);list=list.filter(function(x){return x.id!==id;});setData('modul',list);renderModul();showToast('Modul dihapus.');}
 
-    // ===== OBSERVER =====
-    var observer=new IntersectionObserver(function(entries){for(var i=0;i<entries.length;i++){if(entries[i].isIntersecting)entries[i].target.classList.add('active');}},{threshold:0.15,rootMargin:'0px 0px -80px 0px'});
+    function hapusRencana(id) {
+      db.ref('rencana').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list = list.filter(function(x) { return x && x.id !== id; });
+        saveData('rencana', list).then(function() { showToast('Rencana dihapus.'); });
+      });
+    }
 
-    // ===== MOBILE MENU =====
-    var menuBtn=document.getElementById('menuBtn');var mobileMenu=document.getElementById('mobileMenu');var menuOpen=false;
-    menuBtn.addEventListener('click',function(){menuOpen=!menuOpen;mobileMenu.style.maxHeight=menuOpen?mobileMenu.scrollHeight+'px':'0px';menuBtn.innerHTML=menuOpen?'<iconify-icon icon="lucide:x" width="24"></iconify-icon>':'<iconify-icon icon="lucide:menu" width="24"></iconify-icon>';});
-    var mls=document.querySelectorAll('.mobile-link');for(var mi=0;mi<mls.length;mi++){mls[mi].addEventListener('click',function(){menuOpen=false;mobileMenu.style.maxHeight='0px';menuBtn.innerHTML='<iconify-icon icon="lucide:menu" width="24"></iconify-icon>';});}
+    // ===================================================================
+    // ===== RENDER MODUL (Firebase) =====================================
+    // ===================================================================
+    function renderModul(list) {
+      var c = document.getElementById('modulContainer');
+      var em = document.getElementById('modulEmpty');
+      if (!list || list.length === 0) { c.innerHTML = ''; em.style.display = ''; return; }
+      em.style.display = 'none';
+      var colors = { 'KB & Kontrasepsi': 'text-blue-400/60', 'Stunting & Gizi': 'text-green-400/60', 'Kesehatan Reproduksi': 'text-pink-400/60', 'GenRE': 'text-purple-400/60', 'Kampung KB': 'text-amber-400/60', 'MEKOP': 'text-teal-400/60', 'Manajemen Data': 'text-cyan-400/60', 'Pelayanan KB': 'text-blue-400/60', 'Mekanisme operasinal': 'text-teal-400/60' };
+      var h = '';
+      for (var i = 0; i < list.length; i++) {
+        var m = list[i];
+        if (!m) continue;
+        var cc = colors[m.kategori] || 'text-sand/60';
+        h += '<div class="edu-card reveal-up"><div class="flex items-start justify-between mb-5"><div class="w-12 h-12 border border-sand/15 flex items-center justify-center shrink-0"><iconify-icon icon="lucide:file-text" width="20" class="text-sand/40"></iconify-icon></div>';
+        h += '<button onclick="event.stopPropagation();hapusModul(' + m.id + ')" class="admin-del text-ivory/15 hover:text-red-400/60 transition-colors p-1"><iconify-icon icon="lucide:trash-2" width="14"></iconify-icon></button></div>';
+        h += '<span class="text-xs font-medium ' + cc + ' block mb-2">' + (m.kategori || '') + '</span><h3 class="font-display text-lg tracking-tight text-ivory mb-3">' + m.judul + '</h3>';
+        h += '<p class="text-sm font-light leading-relaxed text-ivory/40 mb-6">' + (m.deskripsi || '') + '</p>';
+        h += '<div class="flex items-center justify-between pt-4 border-t border-sand/8"><span class="text-xs font-light text-ivory/25">' + (m.fileName || '') + ' · ' + (m.fileSize || 'PDF') + '</span>';
+        h += '<button onclick="event.stopPropagation();showToast(\'File akan diunduh.\')" class="text-xs font-medium text-sand/60 hover:text-gold transition-colors flex items-center gap-1"><iconify-icon icon="lucide:download" width="13"></iconify-icon> Unduh</button></div></div>';
+      }
+      c.innerHTML = h;
+      c.querySelectorAll('.reveal-up').forEach(function(el) { observer.observe(el); });
+      updateAuthUI();
+    }
 
-    // ===== CONTACT FORM =====
-    document.getElementById('contactForm').addEventListener('submit',function(e){
-      e.preventDefault();var n=document.getElementById('nameInput').value.trim();var em=document.getElementById('emailInput').value.trim();var s=document.getElementById('subjectInput').value;var m=document.getElementById('messageInput').value.trim();
-      if(!n){showToast('Mohon isi nama.');return;}if(!em||em.indexOf('@')===-1){showToast('Mohon isi email valid.');return;}if(!s){showToast('Mohon pilih topik.');return;}if(!m){showToast('Mohon tulis pesan.');return;}
-      var btn=this.querySelector('button[type="submit"]');var orig=btn.innerHTML;btn.innerHTML='<iconify-icon icon="lucide:loader-2" width="16" class="animate-spin"></iconify-icon> Mengirim...';btn.disabled=true;var self=this;
-      setTimeout(function(){showToast('Terima kasih, '+n+'! Pesan terkirim.');self.reset();btn.innerHTML=orig;btn.disabled=false;},1500);
+    listenData('modul', renderModul);
+
+    document.getElementById('modulFile').addEventListener('change', function() {
+      var f = this.files[0];
+      document.getElementById('modulFileName').textContent = f ? f.name : '';
     });
 
-    // ===== SMOOTH SCROLL =====
-    var sa=document.querySelectorAll('a[href^="#"]');for(var si=0;si<sa.length;si++){sa[si].addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(this.getAttribute('href'));if(t)window.scrollTo({top:t.getBoundingClientRect().top+window.pageYOffset-80,behavior:'smooth'});});}
+    document.getElementById('tambahModulForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var fi = document.getElementById('modulFile');
+      if (!fi.files[0]) { showToast('Mohon pilih file PDF.'); return; }
+      var self = this;
+      db.ref('modul').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list.push({
+          id: Date.now(),
+          judul: document.getElementById('modulJudul').value.trim(),
+          deskripsi: document.getElementById('modulDeskripsi').value.trim(),
+          kategori: document.getElementById('modulKategori').value,
+          fileName: fi.files[0].name,
+          fileSize: (fi.files[0].size / 1024 / 1024).toFixed(1) + ' MB'
+        });
+        saveData('modul', list).then(function() {
+          self.reset();
+          document.getElementById('modulFileName').textContent = '';
+          closeModalCond(null, 'tambahModulModal');
+          showToast('Modul berhasil ditambahkan!');
+        });
+      });
+    });
 
-    // ===== KEYBOARD =====
-    document.addEventListener('keydown',function(e){
-      if(document.getElementById('lightboxModal').classList.contains('open')){if(e.key==='Escape')closeModalCond(null,'lightboxModal');if(e.key==='ArrowLeft')lightboxPrev();if(e.key==='ArrowRight')lightboxNext();}
-      if(document.getElementById('loginModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'loginModal');
-      if(document.getElementById('beritaModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'beritaModal');
-      if(document.getElementById('buatLaporanModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'buatLaporanModal');
-      if(document.getElementById('tambahKegiatanModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'tambahKegiatanModal');
-      if(document.getElementById('tambahFotoModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'tambahFotoModal');
-      if(document.getElementById('tambahRencanaModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'tambahRencanaModal');
-      if(document.getElementById('tambahModulModal').classList.contains('open')&&e.key==='Escape')closeModalCond(null,'tambahModulModal');
+    function hapusModul(id) {
+      db.ref('modul').once('value', function(snapshot) {
+        var list = snapshot.val() ? (Array.isArray(snapshot.val()) ? snapshot.val() : Object.values(snapshot.val())) : [];
+        list = list.filter(function(x) { return x && x.id !== id; });
+        saveData('modul', list).then(function() { showToast('Modul dihapus.'); });
+      });
+    }
+
+    // ===================================================================
+    // ===== OBSERVER, MENU, CONTACT, SCROLL, KEYBOARD ===================
+    // ===================================================================
+    var observer = new IntersectionObserver(function(entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) entries[i].target.classList.add('active');
+      }
+    }, { threshold: 0.15, rootMargin: '0px 0px -80px 0px' });
+
+    var menuBtn = document.getElementById('menuBtn');
+    var mobileMenu = document.getElementById('mobileMenu');
+    var menuOpen = false;
+    menuBtn.addEventListener('click', function() {
+      menuOpen = !menuOpen;
+      mobileMenu.style.maxHeight = menuOpen ? mobileMenu.scrollHeight + 'px' : '0px';
+      menuBtn.innerHTML = menuOpen ? '<iconify-icon icon="lucide:x" width="24"></iconify-icon>' : '<iconify-icon icon="lucide:menu" width="24"></iconify-icon>';
+    });
+    var mls = document.querySelectorAll('.mobile-link');
+    for (var mi = 0; mi < mls.length; mi++) {
+      mls[mi].addEventListener('click', function() {
+        menuOpen = false;
+        mobileMenu.style.maxHeight = '0px';
+        menuBtn.innerHTML = '<iconify-icon icon="lucide:menu" width="24"></iconify-icon>';
+      });
+    }
+
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var n = document.getElementById('nameInput').value.trim();
+      var em = document.getElementById('emailInput').value.trim();
+      var s = document.getElementById('subjectInput').value;
+      var m = document.getElementById('messageInput').value.trim();
+      if (!n) { showToast('Mohon isi nama.'); return; }
+      if (!em || em.indexOf('@') === -1) { showToast('Mohon isi email valid.'); return; }
+      if (!s) { showToast('Mohon pilih topik.'); return; }
+      if (!m) { showToast('Mohon tulis pesan.'); return; }
+      var btn = this.querySelector('button[type="submit"]');
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-2" width="16" class="animate-spin"></iconify-icon> Mengirim...';
+      btn.disabled = true;
+      var self = this;
+      setTimeout(function() { showToast('Terima kasih, ' + n + '! Pesan terkirim.'); self.reset(); btn.innerHTML = orig; btn.disabled = false; }, 1500);
+    });
+
+    var sa = document.querySelectorAll('a[href^="#"]');
+    for (var si = 0; si < sa.length; si++) {
+      sa[si].addEventListener('click', function(e) {
+        e.preventDefault();
+        var t = document.querySelector(this.getAttribute('href'));
+        if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+      });
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('lightboxModal').classList.contains('open')) { if (e.key === 'Escape') closeModalCond(null, 'lightboxModal'); if (e.key === 'ArrowLeft') lightboxPrev(); if (e.key === 'ArrowRight') lightboxNext(); }
+      if (document.getElementById('loginModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'loginModal');
+      if (document.getElementById('beritaModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'beritaModal');
+      if (document.getElementById('buatLaporanModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'buatLaporanModal');
+      if (document.getElementById('tambahKegiatanModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'tambahKegiatanModal');
+      if (document.getElementById('tambahFotoModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'tambahFotoModal');
+      if (document.getElementById('tambahRencanaModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'tambahRencanaModal');
+      if (document.getElementById('tambahModulModal').classList.contains('open') && e.key === 'Escape') closeModalCond(null, 'tambahModulModal');
     });
 
     // ===== INIT =====
-    renderKegiatan();renderGallery();renderBerita();renderRencana();renderModul();updateAuthUI();
-    var allR=document.querySelectorAll('.reveal-up, .reveal-fade');for(var ri=0;ri<allR.length;ri++){observer.observe(allR[ri]);}
+    updateAuthUI();
+    var allR = document.querySelectorAll('.reveal-up, .reveal-fade');
+    for (var ri = 0; ri < allR.length; ri++) { observer.observe(allR[ri]); }
+
+    console.log('Website berhasil terhubung ke Firebase Realtime Database.');
   </script>
 </body>
 </html>
